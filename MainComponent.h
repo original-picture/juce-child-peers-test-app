@@ -29,11 +29,15 @@ public:
         create_window_button.onClick = [&]() {
             std::cerr << "window created\n";
 
-            auto& window = *children.insert(new MainComponent(getName()+".window"+juce::String(children_created), this)).first;
+            auto new_child = std::make_unique<MainComponent>(getName()+".window"+juce::String(children_created), this);
+
+            new_child->setTransientFor(this);
+            new_child->setVisible(true);
+
+            global_windows_list.emplace(new_child.get(), std::move(new_child));
 
             ++children_created;
-            window->setTransientFor(this);
-            window->setVisible(true);
+
         };
     }
 
@@ -58,7 +62,7 @@ public:
 
         if(this->parent) {
             this->parent->children.erase(this);
-            delete this;
+            global_windows_list.erase(this);
         }
         else {
             std::exit(0);
@@ -68,6 +72,8 @@ public:
     }
 
 private:
+    inline static std::unordered_map<MainComponent*, std::unique_ptr<MainComponent>> global_windows_list; // keep track of all children to prevent juce from complaining about memory leaks
+
     unsigned children_created = 0;
     MainComponent* parent = nullptr;
     juce::TextButton create_window_button = juce::TextButton("create child window");
