@@ -31,7 +31,7 @@ public:
 
             auto new_child = std::make_unique<MainComponent>(getName()+".window"+juce::String(children_created), this);
 
-            new_child->setTransientFor(this);
+            this->getPeer()->addTopLevelChildPeer(*new_child->getPeer());
             new_child->setVisible(true);
 
             global_windows_list.emplace(new_child.get(), std::move(new_child));
