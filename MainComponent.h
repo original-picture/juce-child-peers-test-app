@@ -21,7 +21,6 @@ struct buttons_component : public juce::Component {
 
         g.setFont (juce::FontOptions (16.0f));
         g.setColour (juce::Colours::white);
-
     }
 
     void resized() override {
@@ -31,20 +30,19 @@ struct buttons_component : public juce::Component {
         set_always_on_top_button.setTopLeftPosition(getWidth()/2, 0);
         set_always_on_top_button.setSize(getWidth()/2, getHeight());
     }
-
 };
 
 
-//==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
+
+
 class MainComponent final : public juce::DocumentWindow
 {
 public:
     //==============================================================================
-    MainComponent(juce::String name = "window0", MainComponent* parent = nullptr) : parent(parent), juce::DocumentWindow(name, juce::Colour::fromFloatRGBA(1.f, 1.f, 1.f, 1.f), juce::DocumentWindow::minimiseButton|juce::DocumentWindow::closeButton) {
+    MainComponent(juce::String name = "window0", bool is_main_window = false) : name_without_guid_(name), is_main_window_(is_main_window), juce::DocumentWindow(name+", GUID="+juce::String(guid_counter_), juce::Colour::fromFloatRGBA(1.f, 1.f, 1.f, 1.f), juce::DocumentWindow::minimiseButton|juce::DocumentWindow::closeButton, false) {
+
+        addToDesktop();
+
         setSize (600, 400);
         setUsingNativeTitleBar(true);
         setResizable(true, false);
@@ -55,17 +53,21 @@ public:
 
         resized();
 
+        guid_ = guid_counter_;
+        guid_to_component_.emplace(guid_, this);
+        ++guid_counter_;
+
         buttons.create_window_button.onClick = [&]() {
-            auto new_child = std::make_unique<MainComponent>(getName()+".window"+juce::String(children_created), this);
+            auto new_child = std::make_unique<MainComponent>(name_without_guid_+".window"+juce::String(children_created));
 
             this->getPeer()->addTopLevelChildPeer(*new_child->getPeer());
             new_child->setVisible(true);
+            std::cerr << new_child->getName() << " created\n";
 
             global_windows_list.emplace(new_child.get(), std::move(new_child));
 
             ++children_created;
 
-            std::cerr << this->getName() << " created\n";
         };
 
         buttons.set_always_on_top_button.onClick = [&, this]() {
@@ -80,8 +82,15 @@ public:
         };
     }
 
-    MainComponent (juce::JUCEApplication* application) : MainComponent() {
-        application_ = application;
+    int getDesktopWindowStyleFlags() const override {
+        auto styleFlags = juce::DocumentWindow::getDesktopWindowStyleFlags();
+
+        if(!is_main_window_)
+        {
+            styleFlags |= juce::ComponentPeer::windowUsesNormalTitlebarWhenSkippingTaskbar;
+        }
+
+        return styleFlags;
     }
 
     //==============================================================================
@@ -99,22 +108,35 @@ public:
 
     void closeButtonPressed() override {
 
-        if(global_windows_list.empty()) {
+        if(is_main_window_) {
+            global_windows_list.clear(); // erase all windows
+            guid_to_component_.clear();
+
             juce::JUCEApplication::quit();
+
+            std::cerr << "main window closed. Press enter key to quit\n";
         }
+        else {
+            global_windows_list.erase(this);
+            guid_to_component_.erase(guid_);
 
-        global_windows_list.erase(this);
-
-        std::cerr << "window deleted\n";
+            std::cerr << "window closed\n";
+        }
     }
 
+    inline static std::unordered_map<unsigned, MainComponent*> guid_to_component_;
+
+
 private:
-    juce::JUCEApplication* application_ = nullptr;
-
     inline static std::unordered_map<MainComponent*, std::unique_ptr<MainComponent>> global_windows_list; // keep track of all children to prevent juce from complaining about memory leaks
+    inline static unsigned guid_counter_ = 0;
 
+    juce::String name_without_guid_;
+
+    unsigned guid_;
     unsigned children_created = 0;
-    MainComponent* parent = nullptr;
+
+    bool is_main_window_;
 
     buttons_component buttons;
     //std::unordered_set<MainComponent*> children;

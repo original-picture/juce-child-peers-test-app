@@ -1,11 +1,80 @@
 #include "MainComponent.h"
 
+/// source: https://stackoverflow.com/a/57809972
+bool getline_async(std::istream& is, std::string& str, char delim = '\n') {
+
+    static std::string lineSoFar;
+    char inChar;
+    int charsRead = 0;
+    bool lineRead = false;
+    str = "";
+
+    do {
+        charsRead = is.readsome(&inChar, 1);
+        if (charsRead == 1) {
+            // if the delimiter is read then return the string so far
+            if (inChar == delim) {
+                str = lineSoFar;
+                lineSoFar = "";
+                lineRead = true;
+            } else {  // otherwise add it to the string so far
+                lineSoFar.append(1, inChar);
+            }
+        }
+    } while (charsRead != 0 && !lineRead);
+
+    return lineRead;
+}
+
+class stdin_watcher_thread : public juce::Thread {
+    std::atomic<bool> stopped = false;
+
+public:
+    stdin_watcher_thread() : juce::Thread("stdin watcher thread") {}
+    void run() override {
+        for(;;) {
+            if(stopped) {
+                return;
+            }
+
+            std::cout << "enter a window's GUID to toggle its visibility\n";
+            std::string line;
+
+            std::getline(std::cin, line);
+
+            try {
+                unsigned guid = std::stoi(line);
+                auto* component = MainComponent::guid_to_component_.at(guid);
+                {
+                    juce::MessageManager::getInstance()->callAsync([&](){
+                        component->setVisible(!component->isShowing());
+                    });
+
+                }
+                std::cout << "toggling visibility\n";
+            }
+            catch (std::exception& e) {
+                std::cerr << "invalid input: " << e.what() << '\n';
+            }
+        }
+    }
+
+    ~stdin_watcher_thread() override {
+        stopped = true;
+
+        stopThread(-1);
+    }
+};
+
 //==============================================================================
 class GuiAppApplication final : public juce::JUCEApplication
 {
 public:
     //==============================================================================
-    GuiAppApplication() {}
+    GuiAppApplication() {
+        stdin_thread_.startThread();
+
+    }
 
     // We inject these as compile definitions from the CMakeLists.txt
     // If you've enabled the juce header with `juce_generate_juce_header(<thisTarget>)`
@@ -20,7 +89,7 @@ public:
         // This method is where you should put your application's initialisation code..
         juce::ignoreUnused (commandLine);
 
-        mainWindow.reset (new MainComponent("main-window"));
+        mainWindow.reset (new MainComponent("main-window", true));
         mainWindow->setVisible(true);
     }
 
@@ -50,6 +119,7 @@ public:
 
 private:
     std::unique_ptr<MainComponent> mainWindow;
+    stdin_watcher_thread stdin_thread_;
 };
 
 //==============================================================================
