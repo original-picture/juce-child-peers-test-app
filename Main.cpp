@@ -47,7 +47,7 @@ public:
                 auto* component = MainComponent::guid_to_component_.at(guid);
                 {
                     juce::MessageManager::getInstance()->callAsync([&](){
-                        component->setVisible(!component->isShowing());
+                        component->getPeer()->setVisible(!component->getPeer()->isShowing());
                     });
 
                 }

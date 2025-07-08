@@ -85,9 +85,14 @@ public:
     int getDesktopWindowStyleFlags() const override {
         auto styleFlags = juce::DocumentWindow::getDesktopWindowStyleFlags();
 
-        if(!is_main_window_)
+        if(is_main_window_)
+        {
+            styleFlags |= juce::ComponentPeer::windowAppearsOnTaskbar;
+        }
+        else
         {
             styleFlags |= juce::ComponentPeer::windowUsesNormalTitlebarWhenSkippingTaskbar;
+            styleFlags &= (~juce::ComponentPeer::windowAppearsOnTaskbar);
         }
 
         return styleFlags;
