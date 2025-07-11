@@ -1,30 +1,34 @@
 #include "MainComponent.h"
 
-/// source: https://stackoverflow.com/a/57809972
-bool getline_async(std::istream& is, std::string& str, char delim = '\n') {
+#include <charconv>
 
-    static std::string lineSoFar;
-    char inChar;
-    int charsRead = 0;
-    bool lineRead = false;
-    str = "";
 
-    do {
-        charsRead = is.readsome(&inChar, 1);
-        if (charsRead == 1) {
-            // if the delimiter is read then return the string so far
-            if (inChar == delim) {
-                str = lineSoFar;
-                lineSoFar = "";
-                lineRead = true;
-            } else {  // otherwise add it to the string so far
-                lineSoFar.append(1, inChar);
+std::vector<std::string>
+split(const std::string& str) {
+
+    std::vector<std::string> ret;
+    std::string current_str;
+
+    for(unsigned i = 0; i < str.size(); ++i) {
+        char c = str[i];
+
+        if(!std::isspace(c)) {
+            current_str += c;
+        }
+        else {
+            if(current_str.size()) {
+                ret.push_back(std::move(current_str));
             }
         }
-    } while (charsRead != 0 && !lineRead);
+    }
 
-    return lineRead;
+    if(current_str.size()) {
+        ret.push_back(std::move(current_str));
+    }
+
+    return ret;
 }
+
 
 class stdin_watcher_thread : public juce::Thread {
     std::atomic<bool> stopped = false;
@@ -37,24 +41,82 @@ public:
                 return;
             }
 
-            std::cout << "enter a window's GUID to toggle its visibility\n";
+            std::cout << "enter one of the following commands:\n"
+                         "toggle-visibility <window-id>\n"
+                         "tofront <window-id>\n"
+                         "tobehind <window-to-move> <window-to->\n";
+
             std::string line;
 
             std::getline(std::cin, line);
 
-            try {
-                unsigned guid = std::stoi(line);
-                auto* component = MainComponent::guid_to_component_.at(guid);
-                {
-                    juce::MessageManager::getInstance()->callAsync([&](){
-                        component->setVisible(!component->isShowing());
-                    });
+            auto tokens = split(line);
 
+
+            if(tokens.size()) {
+                try {
+                    if(tokens[0] == "toggle-visibility") {
+                        if(tokens.size() > 1) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    component->setVisible(!component->isShowing());
+                                                                });
+
+                            }
+
+                            std::cout << "toggling visibility...\n";
+                        }
+                        else {
+                            std::cerr << "toggle-visibility needs an argument <window-id>\n";
+                        }
+                    }
+                    else if(tokens[0] == "tofront") {
+                        if(tokens.size() > 1) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    component->toFront(true);
+                                                                });
+
+                            }
+
+                            std::cout << "calling toFront...\n";
+                        }
+                        else {
+                            std::cerr << "tofront needs an argument <window-id>\n";
+                        }
+                    }
+                    else if(tokens[0] == "tobehind") {
+                        if(tokens.size() > 2) {
+                            unsigned guid0 = std::stoi(tokens[1]),
+                                     guid1 = std::stoi(tokens[2]);
+                            auto* component = MainComponent::guid_to_component_.at(guid0);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    component->toBehind(MainComponent::guid_to_component_.at(guid1));
+                                                                });
+
+                            }
+
+                            std::cout << "calling toBehind...\n";
+                        }
+                        else {
+                            std::cerr << "tofront needs two arguments <window-id> <window-to-put-behind-id>\n";
+                        }
+                    }
+                    else {
+                        std::cerr << "command not recognized\n";
+                    }
                 }
-                std::cout << "toggling visibility\n";
-            }
-            catch (std::exception& e) {
-                std::cerr << "invalid input: " << e.what() << '\n';
+                catch (std::exception& e) {
+                    std::cerr << "invalid input: " << e.what() << '\n';
+                }
             }
         }
     }
