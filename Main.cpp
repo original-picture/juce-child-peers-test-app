@@ -62,7 +62,7 @@ public:
                             {
                                 juce::MessageManager::callAsync([&]()
                                                                 {
-                                                                    component->setVisible(!component->isShowing());
+                                                                    component->getPeer()->setVisible(!component->getPeer()->isShowing());
                                                                 });
 
                             }
@@ -80,7 +80,7 @@ public:
                             {
                                 juce::MessageManager::callAsync([&]()
                                                                 {
-                                                                    component->toFront(true);
+                                                                    component->getPeer()->toFront(true);
                                                                 });
 
                             }
@@ -99,7 +99,7 @@ public:
                             {
                                 juce::MessageManager::callAsync([&]()
                                                                 {
-                                                                    component->toBehind(MainComponent::guid_to_component_.at(guid1));
+                                                                    component->getPeer()->toBehind(MainComponent::guid_to_component_.at(guid1)->getPeer());
                                                                 });
 
                             }
