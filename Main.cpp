@@ -36,15 +36,18 @@ class stdin_watcher_thread : public juce::Thread {
 public:
     stdin_watcher_thread() : juce::Thread("stdin watcher thread") {}
     void run() override {
+        std::cout << "enter one of the following commands:\n"
+                     "tv (toggle visibility) <window-id>\n"
+                     "tf (to front) <window-id>\n"
+                     "tff (to front and take focus) <window-id>\n"
+                     "tb  (to behind) <window-to-move> <window-to-put-behind>\n"
+                     "lsc (list children) <window-id>\n"
+                     "gf (grab focus) <widow-id>";
+
         for(;;) {
             if(stopped) {
                 return;
             }
-
-            std::cout << "enter one of the following commands:\n"
-                         "toggle-visibility <window-id>\n"
-                         "tofront <window-id>\n"
-                         "tobehind <window-to-move> <window-to->\n";
 
             std::string line;
 
@@ -55,7 +58,7 @@ public:
 
             if(tokens.size()) {
                 try {
-                    if(tokens[0] == "toggle-visibility") {
+                    if(tokens[0] == "tv") {
                         if(tokens.size() > 1) {
                             unsigned guid = std::stoi(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
@@ -70,28 +73,26 @@ public:
                             std::cout << "toggling visibility...\n";
                         }
                         else {
-                            std::cerr << "toggle-visibility needs an argument <window-id>\n";
+                            std::cerr << "tv needs an argument <window-id>\n";
                         }
                     }
-                    else if(tokens[0] == "tofront") {
+                    else if(tokens[0] == "tf" || tokens[0] == "tff") {
                         if(tokens.size() > 1) {
                             unsigned guid = std::stoi(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
-                            {
-                                juce::MessageManager::callAsync([&]()
-                                                                {
-                                                                    component->getPeer()->toFront(true);
-                                                                });
+                            juce::MessageManager::callAsync([&]()
+                                                            {
+                                                                component->getPeer()->toFront(tokens[0] == "tff");
+                                                            });
 
-                            }
 
                             std::cout << "calling toFront...\n";
                         }
                         else {
-                            std::cerr << "tofront needs an argument <window-id>\n";
+                            std::cerr << "tf needs an argument <window-id>\n";
                         }
                     }
-                    else if(tokens[0] == "tobehind") {
+                    else if(tokens[0] == "tb") {
                         if(tokens.size() > 2) {
                             unsigned guid0 = std::stoi(tokens[1]),
                                      guid1 = std::stoi(tokens[2]);
@@ -107,7 +108,47 @@ public:
                             std::cout << "calling toBehind...\n";
                         }
                         else {
-                            std::cerr << "tofront needs two arguments <window-id> <window-to-put-behind-id>\n";
+                            std::cerr << "tb needs two arguments <window-id> <window-to-put-behind-id>\n";
+                        }
+                    }
+                    else if(tokens[0] == "lsc") {
+                        if(tokens.size() > 1) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    std::cout << "child components:\n";
+                                                                    for(auto& e : component->getPeer()->getTopLevelChildren()) {
+                                                                        auto& child_component = e->getComponent();
+                                                                        auto* component_dynamic_type = dynamic_cast<MainComponent*>(&child_component);
+                                                                        std::cout << component_dynamic_type->guid() << '\n';
+                                                                    }
+                                                                });
+
+                            }
+
+                        }
+                        else {
+                            std::cerr << "lsc needs an argument <window-id>\n";
+                        }
+                    }
+                    else if(tokens[0] == "gf") {
+                        if(tokens.size() > 1) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    std::cerr << "calling grabFocus...\n";
+                                                                    component->getPeer()->grabFocus();
+                                                                });
+
+                            }
+
+                        }
+                        else {
+                            std::cerr << "gf needs an argument <window-id>\n";
                         }
                     }
                     else {

@@ -126,6 +126,9 @@ public:
 
     inline static std::unordered_map<unsigned, MainComponent*> guid_to_component_;
 
+    unsigned guid() const {
+        return guid_;
+    }
 
 private:
     inline static std::unordered_map<MainComponent*, std::unique_ptr<MainComponent>> global_windows_list; // keep track of all children to prevent juce from complaining about memory leaks
