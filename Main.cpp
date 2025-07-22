@@ -42,7 +42,8 @@ public:
                      "tff (to front and take focus) <window-id>\n"
                      "tb  (to behind) <window-to-move> <window-to-put-behind>\n"
                      "lsc (list children) <window-id>\n"
-                     "gf (grab focus) <widow-id>";
+                     "gf (grab focus) <widow-id>\n"
+                     "sm (set minimised) <widow-id>";
 
         for(;;) {
             if(stopped) {
@@ -119,7 +120,7 @@ public:
                                 juce::MessageManager::callAsync([&]()
                                                                 {
                                                                     std::cout << "child components:\n";
-                                                                    for(auto& e : component->getPeer()->getTopLevelChildren()) {
+                                                                    for(auto& e : component->getPeer()->getFloatingChildren()) {
                                                                         auto& child_component = e->getComponent();
                                                                         auto* component_dynamic_type = dynamic_cast<MainComponent*>(&child_component);
                                                                         std::cout << component_dynamic_type->guid() << '\n';
@@ -149,6 +150,25 @@ public:
                         }
                         else {
                             std::cerr << "gf needs an argument <window-id>\n";
+                        }
+                    }
+                    else if(tokens[0] == "sm") {
+                        if(tokens.size() > 2) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            bool shouldBeMinimised = std::stoi(tokens[2]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    std::cerr << "calling setMinimised...\n";
+                                                                    component->getPeer()->setMinimised (shouldBeMinimised);
+                                                                });
+
+                            }
+
+                        }
+                        else {
+                            std::cerr << "sm needs two arguments <window-id> <should-be-minimised:int>\n";
                         }
                     }
                     else {
