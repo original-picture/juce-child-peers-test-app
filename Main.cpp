@@ -45,7 +45,7 @@ public:
                      "gf (grab focus) <widow-id>\n"
                      "sm (set minimised) <widow-id>\n"
                      "lit (list inherent traits) <window-id>";
-// 
+
         for(;;) {
             if(stopped) {
                 return;
