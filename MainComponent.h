@@ -87,6 +87,7 @@ public:
 
         if(!is_main_window_)
         {
+            styleFlags &= ~juce::ComponentPeer::windowAppearsOnTaskbar;
             styleFlags |= juce::ComponentPeer::windowUsesNormalTitlebarWhenSkippingTaskbar;
         }
 
@@ -142,7 +143,6 @@ private:
     bool is_main_window_;
 
     buttons_component buttons;
-    //std::unordered_set<MainComponent*> children;
     //==============================================================================
     // Your private member variables go here...
 

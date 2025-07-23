@@ -43,7 +43,8 @@ public:
                      "tb  (to behind) <window-to-move> <window-to-put-behind>\n"
                      "lsc (list children) <window-id>\n"
                      "gf (grab focus) <widow-id>\n"
-                     "sm (set minimised) <widow-id>";
+                     "sm (set minimised) <widow-id>\n"
+                     "lit (list inherent traits) <window-id>";
 
         for(;;) {
             if(stopped) {
@@ -81,9 +82,11 @@ public:
                         if(tokens.size() > 1) {
                             unsigned guid = std::stoi(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
-                            juce::MessageManager::callAsync([&]()
+
+                            bool is_tff = tokens[0] == "tff";
+                            juce::MessageManager::callAsync([=]()
                                                             {
-                                                                component->getPeer()->toFront(tokens[0] == "tff");
+                                                                component->getPeer()->toFront(is_tff);
                                                             });
 
 
@@ -120,7 +123,7 @@ public:
                                 juce::MessageManager::callAsync([&]()
                                                                 {
                                                                     std::cout << "child components:\n";
-                                                                    for(auto& e : component->getPeer()->getFloatingChildren()) {
+                                                                    for(auto& e : component->getPeer()->getFloatingChildPeers()) {
                                                                         auto& child_component = e->getComponent();
                                                                         auto* component_dynamic_type = dynamic_cast<MainComponent*>(&child_component);
                                                                         std::cout << component_dynamic_type->guid() << '\n';
@@ -169,6 +172,26 @@ public:
                         }
                         else {
                             std::cerr << "sm needs two arguments <window-id> <should-be-minimised:int>\n";
+                        }
+                    }
+                    else if(tokens[0] == "lit") {
+                        if(tokens.size() > 1) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                //juce::MessageManager::callAsync([&]()
+                                //                                {
+                                                                    std::cout <<   "isInherentlyMinimised:   " << std::boolalpha << component->getPeer()->isInherentlyMinimised()
+                                                                              << "\nisInherentlyHidden:      " << std::boolalpha << component->getPeer()->isInherentlyHidden()
+                                                                              << "\nisInherentlyAlwaysOnTop: " << std::boolalpha << component->getPeer()->isInherentlyAlwaysOnTop()
+                                                                              << '\n';
+                                //                                });
+
+                            }
+
+                        }
+                        else {
+                            std::cerr << "lit needs an argument <window-id>\n";
                         }
                     }
                     else {
