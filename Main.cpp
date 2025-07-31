@@ -43,9 +43,10 @@ public:
                      "tb  (to behind) <window-to-move> <window-to-put-behind>\n"
                      "lsc (list children) <window-id>\n"
                      "gf (grab focus) <widow-id>\n"
-                     "sm (set minimised) <widow-id>\n"
+                     "sm (set minimised) <widow-id> <value:uint>\n"
+                     "saot (set always on top) <widow-id> <value:uint>\n"
                      "lit (list inherent traits) <window-id>";
-// 
+// `
         for(;;) {
             if(stopped) {
                 return;
@@ -171,7 +172,26 @@ public:
 
                         }
                         else {
-                            std::cerr << "sm needs two arguments <window-id> <should-be-minimised:int>\n";
+                            std::cerr << "sm needs two arguments <window-id> <should-be-minimised:uint>\n";
+                        }
+                    }
+                    else if(tokens[0] == "saot") {
+                        if(tokens.size() > 2) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            bool shouldBeMinimised = std::stoi(tokens[2]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    std::cerr << "calling setAlwaysOnTop...\n";
+                                                                    component->getPeer()->setAlwaysOnTop(shouldBeMinimised);
+                                                                });
+
+                            }
+
+                        }
+                        else {
+                            std::cerr << "saot needs two arguments <window-id> <should-be-minimised:uint>\n";
                         }
                     }
                     else if(tokens[0] == "lit") {
