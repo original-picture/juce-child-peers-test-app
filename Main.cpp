@@ -46,7 +46,8 @@ public:
                      "sm (set minimised) <widow-id> <value:uint>\n"
                      "saot (set always on top) <widow-id> <value:uint>\n"
                      "lit (list inherent traits) <window-id>";
-// `
+
+        
         for(;;) {
             if(stopped) {
                 return;
