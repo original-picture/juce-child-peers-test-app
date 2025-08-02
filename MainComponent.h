@@ -60,7 +60,10 @@ public:
         buttons.create_window_button.onClick = [&]() {
             auto new_child = std::make_unique<MainComponent>(name_without_guid_+".window"+juce::String(children_created));
 
-            this->getPeer()->addFloatingChildPeer(*new_child->getPeer());
+            #ifndef NO_CHILD_PEERS_SUPPORT
+                this->getPeer()->addFloatingChildPeer(*new_child->getPeer());
+            #endif
+
             new_child->setVisible(true);
             std::cerr << new_child->getName() << " created\n";
 

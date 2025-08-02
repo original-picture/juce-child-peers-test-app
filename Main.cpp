@@ -1,6 +1,6 @@
-#include "MainComponent.h"
 
-#include <charconv>
+#define NO_CHILD_PEERS_SUPPORT
+#include "MainComponent.h"
 
 
 std::vector<std::string>
@@ -36,8 +36,10 @@ class stdin_watcher_thread : public juce::Thread {
 public:
     stdin_watcher_thread() : juce::Thread("stdin watcher thread") {}
     void run() override {
+    #ifndef NO_CHILD_PEERS_SUPPORT
         std::cout << "enter one of the following commands:\n"
                      "tv (toggle visibility) <window-id>\n"
+                     "sv (set set visible) <window-id> <value:uint>\n"
                      "tf (to front) <window-id>\n"
                      "tff (to front and take focus) <window-id>\n"
                      "tb  (to behind) <window-to-move> <window-to-put-behind>\n"
@@ -47,7 +49,6 @@ public:
                      "saot (set always on top) <widow-id> <value:uint>\n"
                      "lit (list inherent traits) <window-id>";
 
-        
         for(;;) {
             if(stopped) {
                 return;
@@ -179,20 +180,39 @@ public:
                     else if(tokens[0] == "saot") {
                         if(tokens.size() > 2) {
                             unsigned guid = std::stoi(tokens[1]);
-                            bool shouldBeMinimised = std::stoi(tokens[2]);
+                            bool shouldBeAlwaysOnTop = std::stoi(tokens[2]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 juce::MessageManager::callAsync([&]()
                                                                 {
                                                                     std::cerr << "calling setAlwaysOnTop...\n";
-                                                                    component->getPeer()->setAlwaysOnTop(shouldBeMinimised);
+                                                                    component->getPeer()->setAlwaysOnTop(shouldBeAlwaysOnTop);
                                                                 });
 
                             }
 
                         }
                         else {
-                            std::cerr << "saot needs two arguments <window-id> <should-be-minimised:uint>\n";
+                            std::cerr << "saot needs two arguments <window-id> <should-be-always-on-top:uint>\n";
+                        }
+                    }
+                    else if(tokens[0] == "sv") {
+                        if(tokens.size() > 2) {
+                            unsigned guid = std::stoi(tokens[1]);
+                            bool shouldBeVisible = std::stoi(tokens[2]);
+                            auto* component = MainComponent::guid_to_component_.at(guid);
+                            {
+                                juce::MessageManager::callAsync([&]()
+                                                                {
+                                                                    std::cerr << "calling setVisible...\n";
+                                                                    component->getPeer()->setVisible(shouldBeVisible);
+                                                                });
+
+                            }
+
+                        }
+                        else {
+                            std::cerr << "sv needs two arguments <window-id> <should-be-visible:uint>\n";
                         }
                     }
                     else if(tokens[0] == "lit") {
@@ -224,6 +244,7 @@ public:
                 }
             }
         }
+    #endif
     }
 
     ~stdin_watcher_thread() override {
