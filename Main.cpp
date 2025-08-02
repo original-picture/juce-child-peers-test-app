@@ -65,7 +65,7 @@ public:
                 try {
                     if(tokens[0] == "tv") {
                         if(tokens.size() > 1) {
-                            unsigned guid = std::stoi(tokens[1]);
+                            unsigned guid = std::stoul(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 juce::MessageManager::callAsync([&]()
@@ -83,7 +83,7 @@ public:
                     }
                     else if(tokens[0] == "tf" || tokens[0] == "tff") {
                         if(tokens.size() > 1) {
-                            unsigned guid = std::stoi(tokens[1]);
+                            unsigned guid = std::stoul(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
 
                             bool is_tff = tokens[0] == "tff";
@@ -101,8 +101,8 @@ public:
                     }
                     else if(tokens[0] == "tb") {
                         if(tokens.size() > 2) {
-                            unsigned guid0 = std::stoi(tokens[1]),
-                                     guid1 = std::stoi(tokens[2]);
+                            unsigned guid0 = std::stoul(tokens[1]),
+                                     guid1 = std::stoul(tokens[2]);
                             auto* component = MainComponent::guid_to_component_.at(guid0);
                             {
                                 juce::MessageManager::callAsync([&]()
@@ -120,7 +120,7 @@ public:
                     }
                     else if(tokens[0] == "lsc") {
                         if(tokens.size() > 1) {
-                            unsigned guid = std::stoi(tokens[1]);
+                            unsigned guid = std::stoul(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 juce::MessageManager::callAsync([&]()
@@ -142,7 +142,7 @@ public:
                     }
                     else if(tokens[0] == "gf") {
                         if(tokens.size() > 1) {
-                            unsigned guid = std::stoi(tokens[1]);
+                            unsigned guid = std::stoul(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 juce::MessageManager::callAsync([&]()
@@ -160,8 +160,8 @@ public:
                     }
                     else if(tokens[0] == "sm") {
                         if(tokens.size() > 2) {
-                            unsigned guid = std::stoi(tokens[1]);
-                            bool shouldBeMinimised = std::stoi(tokens[2]);
+                            unsigned guid = std::stoul(tokens[1]);
+                            bool shouldBeMinimised = std::stoul(tokens[2]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 juce::MessageManager::callAsync([&]()
@@ -179,8 +179,8 @@ public:
                     }
                     else if(tokens[0] == "saot") {
                         if(tokens.size() > 2) {
-                            unsigned guid = std::stoi(tokens[1]);
-                            bool shouldBeAlwaysOnTop = std::stoi(tokens[2]);
+                            unsigned guid = std::stoul(tokens[1]);
+                            bool shouldBeAlwaysOnTop = std::stoul(tokens[2]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 juce::MessageManager::callAsync([&]()
@@ -198,8 +198,8 @@ public:
                     }
                     else if(tokens[0] == "sv") {
                         if(tokens.size() > 2) {
-                            unsigned guid = std::stoi(tokens[1]);
-                            bool shouldBeVisible = std::stoi(tokens[2]);
+                            unsigned guid = std::stoul(tokens[1]);
+                            bool shouldBeVisible = std::stoul(tokens[2]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 juce::MessageManager::callAsync([&]()
@@ -217,7 +217,7 @@ public:
                     }
                     else if(tokens[0] == "lit") {
                         if(tokens.size() > 1) {
-                            unsigned guid = std::stoi(tokens[1]);
+                            unsigned guid = std::stoul(tokens[1]);
                             auto* component = MainComponent::guid_to_component_.at(guid);
                             {
                                 //juce::MessageManager::callAsync([&]()

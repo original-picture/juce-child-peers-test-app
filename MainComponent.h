@@ -1,9 +1,7 @@
 #pragma once
 
-// CMake builds don't use an AppConfig.h, so it's safe to include juce module headers
-// directly. If you need to remain compatible with Projucer-generated builds, and
-// have called `juce_generate_juce_header(<thisTarget>)` in your CMakeLists.txt,
-// you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
+// I'm lazy so I just include this file directly in Main.cpp, so there is no accompanying MainComponent.cpp
+
 #include <juce_gui_extra/juce_gui_extra.h>
 
 struct buttons_component : public juce::Component {
@@ -61,7 +59,7 @@ public:
             auto new_child = std::make_unique<MainComponent>(name_without_guid_+".window"+juce::String(children_created));
 
 #ifndef NO_CHILD_PEERS_SUPPORT
-            this->getPeer()->addFloatingChildPeer(*new_child->getPeer());
+            this->getPeer()->addFloatingChildPeer(*new_child->getPeer()); /////////////////////////////////////////////// THIS IS THE IMPORTANT PART /////////////////////////////////////////
 #endif
             new_child->setTopLeftPosition(this->getPosition()+juce::Point(50,50));
 
@@ -79,7 +77,7 @@ public:
 
             this->getPeer()->setAlwaysOnTop(!this->getPeer()->isInherentlyAlwaysOnTop());
 
-            if(this->getPeer()->isInherentlyAlwaysOnTop()) {
+            if(this->getPeer()->isInherentlyAlwaysOnTop()) { ////////////////////////// THIS IS NEW IN MY FORK /////////////////////////////
                 std::cerr << this->getName() << " made always on top\n";
             }
             else {
@@ -98,7 +96,7 @@ public:
             styleFlags &= ~juce::ComponentPeer::windowAppearsOnTaskbar;
             styleFlags &= ~juce::ComponentPeer::windowHasMinimiseButton;
 
-            styleFlags |= juce::ComponentPeer::windowUsesNormalTitlebarWhenSkippingTaskbar;
+            styleFlags |= juce::ComponentPeer::windowUsesNormalTitlebarWhenSkippingTaskbar; ////////////////////////// THIS IS NEW IN MY FORK /////////////////////////////
 #endif
         }
 
@@ -154,8 +152,6 @@ private:
     bool is_main_window_;
 
     buttons_component buttons;
-    //==============================================================================
-    // Your private member variables go here...
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
