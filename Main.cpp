@@ -1,5 +1,5 @@
 
-#define NO_CHILD_PEERS_SUPPORT
+// #define NO_CHILD_PEERS_SUPPORT
 #include "MainComponent.h"
 
 

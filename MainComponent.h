@@ -60,9 +60,10 @@ public:
         buttons.create_window_button.onClick = [&]() {
             auto new_child = std::make_unique<MainComponent>(name_without_guid_+".window"+juce::String(children_created));
 
-            #ifndef NO_CHILD_PEERS_SUPPORT
-                this->getPeer()->addFloatingChildPeer(*new_child->getPeer());
-            #endif
+#ifndef NO_CHILD_PEERS_SUPPORT
+            this->getPeer()->addFloatingChildPeer(*new_child->getPeer());
+#endif
+            new_child->setTopLeftPosition(this->getPosition()+juce::Point(50,50));
 
             new_child->setVisible(true);
             std::cerr << new_child->getName() << " created\n";
@@ -74,6 +75,8 @@ public:
         };
 
         buttons.set_always_on_top_button.onClick = [&, this]() {
+#ifndef NO_CHILD_PEERS_SUPPORT
+
             this->getPeer()->setAlwaysOnTop(!this->getPeer()->isInherentlyAlwaysOnTop());
 
             if(this->getPeer()->isInherentlyAlwaysOnTop()) {
@@ -82,6 +85,7 @@ public:
             else {
                 std::cerr << this->getName() << " made NOT always on top\n";
             }
+#endif
         };
     }
 
@@ -90,8 +94,12 @@ public:
 
         if(!is_main_window_)
         {
+#ifndef NO_CHILD_PEERS_SUPPORT
             styleFlags &= ~juce::ComponentPeer::windowAppearsOnTaskbar;
+            styleFlags &= ~juce::ComponentPeer::windowHasMinimiseButton;
+
             styleFlags |= juce::ComponentPeer::windowUsesNormalTitlebarWhenSkippingTaskbar;
+#endif
         }
 
         return styleFlags;
